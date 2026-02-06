@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1052612162492",
+    "project_id": "maatha-7193c",
+    "storage_bucket": "maatha-7193c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1052612162492:android:df7c0af06d13964d32b1b9",
+        "android_client_info": {
+          "package_name": "com.example.maatha_midwife_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBta3wfOmm2sv8Aja0OynnODJijugu3AVI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1052612162492:android:75f8ce2374ebd50932b1b9",
+        "android_client_info": {
+          "package_name": "com.example.matha_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBta3wfOmm2sv8Aja0OynnODJijugu3AVI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

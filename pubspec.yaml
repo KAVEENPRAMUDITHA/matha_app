@@ -1,0 +1,44 @@
+name: matha_app
+description: "A new Flutter project for Maternal and Infant Healthcare."
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.10.1 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+  # Firebase Packages (Version Conflict නිරාකරණය කර ඇත)
+  firebase_core: ^3.15.2
+  firebase_auth: ^5.7.0
+  cloud_firestore: ^5.6.12
+  firebase_storage: ^12.4.10
+
+  # Charts & UI Utilities
+  google_fonts: ^6.1.0
+  flutter_speed_dial: ^7.0.0
+  intl: ^0.19.0
+  fl_chart: ^0.70.2
+
+  # Image & Location Services
+  image_picker: ^1.1.2
+  geolocator: ^13.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  # ඇප් එකට අවශ්‍ය රූප සහ ලෝගෝව මෙහි දක්වා ඇත
+  assets:
+    - assets/maatha_logo.png
+    - assets/maathalogo.png
