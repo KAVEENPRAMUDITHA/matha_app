@@ -1,144 +1,152 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import '../core/constants/colors.dart';
+import '../widgets/matha_background.dart';
 
 class ClinicScreen extends StatelessWidget {
   const ClinicScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // ලොග් වී සිටින මවගේ UID එක සෘජුවම ලබා ගැනීම
-    final String? userId = FirebaseAuth.instance.currentUser?.uid;
+    final User? user = FirebaseAuth.instance.currentUser;
+    
+    // NIC එක ලබා ගැනීම සහ දෙපස ඇති අනවශ්‍ය ඉඩ (Spaces) ඉවත් කිරීම
+    String? currentNic = user?.email?.split('@').first.trim();
 
-    return Scaffold(
-      backgroundColor: kDarkBackground,
-      appBar: AppBar(
-        title: const Text(
-          "සායනික වාර්තා",
-          style: TextStyle(fontWeight: FontWeight.bold),
+    return MathaBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text(
+            "සායන වාර්තා / CLINIC RECORDS",
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Color(0xFF1565C0)),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
         ),
-        backgroundColor: kCardColor,
-        elevation: 0,
-      ),
-      body: userId == null
-          ? const Center(child: Text("කරුණාකර නැවත ලොග් වන්න."))
-          : StreamBuilder<DocumentSnapshot>(
-              // මවගේ UID එකට අදාළ ලේඛනය (Document) ලබා ගැනීම
-              stream: FirebaseFirestore.instance
-                  .collection('mothers')
-                  .doc(userId)
-                  .snapshots(),
-              builder: (context, motherSnapshot) {
-                if (motherSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: kPrimaryBlue));
-                }
+        body: StreamBuilder<QuerySnapshot>(
+          // *** Collection එකේ නම නිවැරදි කළා: 'clinic_reports' ***
+          stream: FirebaseFirestore.instance
+              .collection('clinic_reports') 
+              .where('motherNIC', isEqualTo: currentNic)
+              .orderBy('visitDate', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              // දෝෂයක් ආවොත් එය පෙන්වීමට (Index Link එක මෙතැන පෙනේවි)
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Text(
+                    "දෝෂයකි: ${snapshot.error}",
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ),
+              );
+            }
 
-                if (!motherSnapshot.hasData || !motherSnapshot.data!.exists) {
-                  return const Center(
-                    child: Text("මවගේ දත්ත සොයාගත නොහැක.", style: TextStyle(color: Colors.white54)),
-                  );
-                }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(color: Color(0xFFF06292)));
+            }
 
-                // සායනික වාර්තා (Sub-collection) ලබා ගැනීම
-                return StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('mothers')
-                      .doc(userId)
-                      .collection('clinic_records')
-                      .orderBy('date', descending: false)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator(color: kPrimaryBlue));
-                    }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return _buildEmptyState(currentNic);
+            }
 
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Center(
-                        child: Text("තවමත් සායනික දත්ත ඇතුළත් කර නොමැත.", style: TextStyle(color: Colors.white54)),
-                      );
-                    }
-
-                    var records = snapshot.data!.docs;
-
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "බරෙහි වෙනස්වීම (Weight Gain)",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                          const SizedBox(height: 20),
-
-                          // බර පෙන්වන ප්‍රස්ථාරය
-                          _buildWeightChart(records),
-
-                          const SizedBox(height: 40),
-                          const Text(
-                            "අලුත්ම දත්ත (Latest Metrics)",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                          const SizedBox(height: 15),
-
-                          // රුධිර පීඩනය (BP) පෙන්වීම
-                          _buildMetricCard(
-                            "Blood Pressure",
-                            "${records.last['systolicBP']}/${records.last['diastolicBP']} mmHg",
-                            Icons.monitor_heart,
-                            kPrimaryPink,
-                          ),
-
-                          // වර්තමාන බර පෙන්වීම
-                          _buildMetricCard(
-                            "Current Weight",
-                            "${records.last['weight']} kg",
-                            Icons.scale,
-                            kPrimaryBlue,
-                          ),
-                          
-                          const SizedBox(height: 20),
-                        ],
-                      ),
-                    );
-                  },
-                );
+            return ListView.builder(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+              itemCount: snapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+                var record = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+                return _buildClinicCard(context, record);
               },
-            ),
+            );
+          },
+        ),
+      ),
     );
   }
 
-  // --- බර පෙන්වන ප්‍රස්ථාරය (Line Chart) ---
-  Widget _buildWeightChart(List<QueryDocumentSnapshot> records) {
-    return Container(
-      height: 250,
-      padding: const EdgeInsets.fromLTRB(10, 20, 20, 10),
-      decoration: BoxDecoration(
-        color: kCardColor,
-        borderRadius: BorderRadius.circular(20),
+  Widget _buildEmptyState(String? nic) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.event_busy_rounded, size: 80, color: Colors.blueGrey.withOpacity(0.2)),
+          const SizedBox(height: 20),
+          const Text(
+            "සායන වාර්තා හමුවුනේ නැත.",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.black45, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            "Collection: clinic_reports\nNIC: $nic",
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.black26, fontSize: 11),
+          ),
+        ],
       ),
-      child: LineChart(
-        LineChartData(
-          gridData: const FlGridData(show: false),
-          titlesData: const FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
-          lineBarsData: [
-            LineChartBarData(
-              spots: records.asMap().entries.map((e) {
-                return FlSpot(
-                  e.key.toDouble(),
-                  (e.value['weight'] as num).toDouble(),
-                );
-              }).toList(),
-              isCurved: true,
-              color: kPrimaryBlue,
-              barWidth: 4,
-              dotData: const FlDotData(show: true),
-              belowBarData: BarAreaData(
-                show: true,
-                color: kPrimaryBlue.withOpacity(0.1),
+    );
+  }
+
+  Widget _buildClinicCard(BuildContext context, Map<String, dynamic> data) {
+    // දින ලබා ගැනීම
+    DateTime visitDate = DateTime.now();
+    if (data['visitDate'] != null) {
+      visitDate = (data['visitDate'] as Timestamp).toDate();
+    }
+    
+    String formattedDate = "${visitDate.year}-${visitDate.month.toString().padLeft(2, '0')}-${visitDate.day.toString().padLeft(2, '0')}";
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 8))],
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          iconColor: const Color(0xFFF06292),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: const Color(0xFFF06292).withOpacity(0.1), shape: BoxShape.circle),
+            child: const Icon(Icons.calendar_today_rounded, color: Color(0xFFF06292), size: 22),
+          ),
+          title: Text(formattedDate, style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF2C3E50))),
+          subtitle: const Text("විස්තර බැලීමට ඔබන්න", style: TextStyle(fontSize: 11, color: Colors.black38)),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
+              child: Column(
+                children: [
+                  const Divider(),
+                  _buildDataRow(Icons.monitor_weight_outlined, "බර (Weight)", "${data['weight'] ?? '--'} kg"),
+                  _buildDataRow(Icons.speed_rounded, "රුධිර පීඩනය (BP)", "${data['bloodPressure'] ?? '--'} mmHg"),
+                  _buildDataRow(Icons.favorite_rounded, "හෘද ස්පන්දනය (FHR)", "${data['fetalHeartRate'] ?? '--'} bpm"),
+                  _buildDataRow(Icons.straighten_rounded, "ගර්භාෂ උස (SFH)", "${data['sfh'] ?? '--'} cm"),
+                  _buildDataRow(Icons.child_friendly_rounded, "ළදරු චලන (Kicks)", "${data['kickCount'] ?? '--'} per hour"),
+
+                  const SizedBox(height: 15),
+                  // Urine Tests
+                  if (data['urineTests'] != null)
+                    _buildSubDataBox("මුත්‍රා පරීක්ෂණ / Urine Tests", [
+                      "සීනි (Sugar): ${data['urineTests']['sugar'] ?? 'N/A'}",
+                      "ඇල්බියුමින් (Albumin): ${data['urineTests']['albumin'] ?? 'N/A'}",
+                    ]),
+
+                  const SizedBox(height: 10),
+                  // Supplements
+                  if (data['supplements'] != null)
+                    _buildSubDataBox("ලබාදුන් විටමින් / Supplements", [
+                      "යකඩ පෙති (Iron): ${data['supplements']['ironQty'] ?? '0'} tablets",
+                    ]),
+                ],
               ),
             ),
           ],
@@ -147,28 +155,32 @@ class ClinicScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricCard(String title, String value, IconData icon, Color color) {
+  Widget _buildSubDataBox(String title, List<String> items) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: kCardColor,
-        borderRadius: BorderRadius.circular(15),
+      width: double.infinity,
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(color: Colors.blue.shade50.withOpacity(0.5), borderRadius: BorderRadius.circular(20)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1565C0))),
+          const SizedBox(height: 5),
+          ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 12, color: Colors.blueGrey, height: 1.5))),
+        ],
       ),
+    );
+  }
+
+  Widget _buildDataRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 30),
-          const SizedBox(width: 20),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(color: Colors.white54, fontSize: 14)),
-              Text(
-                value,
-                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
+          Icon(icon, size: 18, color: Colors.blueAccent.shade100),
+          const SizedBox(width: 15),
+          Text(label, style: const TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.bold)),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF1565C0))),
         ],
       ),
     );

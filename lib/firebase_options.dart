@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'maatha-7193c.firebasestorage.app',
     measurementId: 'G-4CQY5GRXMR',
   );
+
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/constants/colors.dart';
+import '../widgets/matha_background.dart';
 import 'home_screen.dart';
 import 'reports_screen.dart';
 import 'clinic_screen.dart';
@@ -15,50 +15,110 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  // ඇප් එකේ ඇති ප්‍රධාන පිටු ලැයිස්තුව
   final List<Widget> _screens = [
-    const HomeScreen(), // මුල් පිටුව
-    ReportsScreen(), // වෛද්‍ය වාර්තා පිටුව
-    const ClinicScreen(), // සායනික දත්ත
-    const ProfileScreen(), // ගිණුම සහ ප්‍රෝෆයිලය
+    const HomeScreen(),
+    ReportsScreen(),
+    const ClinicScreen(),
+    const ProfileScreen(),
   ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
+    // තිරයේ ප්‍රමාණය අනුව උස සහ පෑඩිං තීරණය කිරීම
+    final mediaQuery = MediaQuery.of(context);
+    final bottomPadding = mediaQuery.padding.bottom;
+
     return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        backgroundColor: kCardColor,
-        selectedItemColor: kPrimaryBlue,
-        unselectedItemColor: Colors.white30,
-        type: BottomNavigationBarType
-            .fixed, // අයිතම 4ක් ඇති බැවින් fixed භාවිතා කිරීම සුදුසුයි
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.description_rounded),
-            label: 'Reports',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.event_note_rounded),
-            label: 'Clinic',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
-            label: 'Profile',
+      extendBody: true, // Navigation එක පසුබිම මත පාවීමට ඉඩ ලබාදේ
+      body: MathaBackground(
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: _screens[_selectedIndex],
+        ),
+      ),
+      bottomNavigationBar: _buildPremiumNavBar(bottomPadding),
+    );
+  }
+
+  Widget _buildPremiumNavBar(double bottomPadding) {
+    return Container(
+      // පතුලේ ඇති safe area එක සමඟ උස සකස් කිරීම
+      margin: EdgeInsets.only(bottom: bottomPadding > 0 ? 0 : 0),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.98),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+        // ඉහළ ඉර ඉවත් කිරීමට shadow එක මෘදු කිරීම
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
           ),
         ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 75,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(Icons.home_rounded, "මුල් පිටුව", 0),
+              _buildNavItem(Icons.auto_graph_rounded, "වාර්තා", 1),
+              _buildNavItem(Icons.calendar_month_rounded, "සායනය", 2),
+              _buildNavItem(Icons.face_retouching_natural_rounded, "ගිණුම", 3),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, int index) {
+    final bool isSelected = _selectedIndex == index;
+    final Color primaryColor = const Color(0xFFF06292);
+
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _selectedIndex = index),
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Icon Container
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutBack,
+              padding: EdgeInsets.all(isSelected ? 10 : 8),
+              decoration: BoxDecoration(
+                // Shadow Error එක වළක්වා ගැනීමට ස්ථාවර Shadow එකක් සහ වර්ණය පමණක් වෙනස් කිරීම
+                color: isSelected ? primaryColor.withOpacity(0.12) : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? primaryColor : Colors.blueGrey.shade200,
+                size: isSelected ? 28 : 24,
+              ),
+            ),
+            const SizedBox(height: 4),
+            // Text Label
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 300),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: isSelected ? primaryColor : Colors.blueGrey.shade200,
+                letterSpacing: 0.2,
+              ),
+              child: Text(label),
+            ),
+          ],
+        ),
       ),
     );
   }

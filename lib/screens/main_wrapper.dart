@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../widgets/matha_background.dart'; // අපේ පසුබිම
 import 'login_screen.dart';
 import 'main_navigation.dart';
 
@@ -9,22 +10,25 @@ class MainWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      // Firebase Auth පද්ධතියේ වෙනස්කම් නිරීක්ෂණය කිරීම
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // දත්ත ලැබෙන තෙක් බලා සිටීම
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            // බලා සිටින විට පවා ලස්සන පසුබිමක් පෙන්වීමට
+            body: MathaBackground(
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFFF06292),
+                ),
+              ),
+            ),
           );
         }
 
-        // පරිශීලකයා ලොග් වී ඇත්නම් Main Navigation එක පෙන්වීම
         if (snapshot.hasData) {
           return const MainNavigation();
         }
 
-        // පරිශීලකයා ලොග් වී නොමැති නම් Login Screen එක පෙන්වීම
         return const LoginScreen();
       },
     );
