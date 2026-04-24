@@ -21,7 +21,7 @@ class MaathaApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Maatha App',
       theme: ThemeData(brightness: Brightness.dark, primarySwatch: Colors.pink),
-      home: const SplashScreen(), // දැන් මෙය සාර්ථකව වැඩ කරනු ඇත
+      home: const SplashScreen(), 
     );
   }
 }
