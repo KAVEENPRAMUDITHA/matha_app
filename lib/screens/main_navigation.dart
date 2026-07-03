@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/matha_background.dart';
+import '../widgets/floating_chatbot.dart';
 import 'home_screen.dart';
 import 'reports_screen.dart';
 import 'clinic_screen.dart';
@@ -30,11 +31,17 @@ class _MainNavigationState extends State<MainNavigation> {
 
     return Scaffold(
       extendBody: true, // Navigation එක පසුබිම මත පාවීමට ඉඩ ලබාදේ
-      body: MathaBackground(
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: _screens[_selectedIndex],
-        ),
+      body: Stack(
+        children: [
+          MathaBackground(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: _screens[_selectedIndex],
+            ),
+          ),
+          // Floating 3D Chatbot — visible on all pages
+          const FloatingChatbot(),
+        ],
       ),
       bottomNavigationBar: _buildPremiumNavBar(bottomPadding),
     );
@@ -45,7 +52,7 @@ class _MainNavigationState extends State<MainNavigation> {
       // පතුලේ ඇති safe area එක සමඟ උස සකස් කිරීම
       margin: EdgeInsets.only(bottom: bottomPadding > 0 ? 0 : 0),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.98),
+        color: Colors.white.withValues(alpha: 0.98),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
@@ -53,7 +60,7 @@ class _MainNavigationState extends State<MainNavigation> {
         // ඉහළ ඉර ඉවත් කිරීමට shadow එක මෘදු කිරීම
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -96,7 +103,7 @@ class _MainNavigationState extends State<MainNavigation> {
               padding: EdgeInsets.all(isSelected ? 10 : 8),
               decoration: BoxDecoration(
                 // Shadow Error එක වළක්වා ගැනීමට ස්ථාවර Shadow එකක් සහ වර්ණය පමණක් වෙනස් කිරීම
-                color: isSelected ? primaryColor.withOpacity(0.12) : Colors.transparent,
+                color: isSelected ? primaryColor.withValues(alpha: 0.12) : Colors.transparent,
                 shape: BoxShape.circle,
               ),
               child: Icon(
