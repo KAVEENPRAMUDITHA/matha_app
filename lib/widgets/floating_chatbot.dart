@@ -19,7 +19,14 @@ import 'package:webview_flutter/webview_flutter.dart';
 //  Floating 3-D Pulsing FAB
 // ──────────────────────────────────────────────────────────────────
 class FloatingChatbot extends StatefulWidget {
-  const FloatingChatbot({super.key});
+  final double bottom;
+  final double right;
+
+  const FloatingChatbot({
+    super.key,
+    this.bottom = 95,
+    this.right = 20,
+  });
 
   @override
   State<FloatingChatbot> createState() => _FloatingChatbotState();
@@ -34,6 +41,9 @@ class _FloatingChatbotState extends State<FloatingChatbot>
   // Orbit ring spin
   late final AnimationController _orbitController;
   late final Animation<double> _orbitAnim;
+
+  // Tap scale effect
+  bool _isPressed = false;
 
   @override
   void initState() {
@@ -91,8 +101,8 @@ class _FloatingChatbotState extends State<FloatingChatbot>
       child: Stack(
         children: [
           Positioned(
-            right: 20,
-            bottom: 160, // sits above the bottom nav bar
+            right: widget.right,
+            bottom: widget.bottom, // sits above the bottom nav bar
             child: _build3DFAB(),
           ),
         ],
@@ -108,87 +118,139 @@ class _FloatingChatbotState extends State<FloatingChatbot>
         final orbit = _orbitAnim.value;
 
         return GestureDetector(
-          onTap: _openChat,
-          child: SizedBox(
-            width: 68,
-            height: 68,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Outer glow
-                Container(
-                  width: 68 + pulse * 14,
-                  height: 68 + pulse * 14,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(
-                          0xFFAA44FF,
-                        ).withValues(alpha: 0.35 * pulse),
-                        blurRadius: 28,
-                        spreadRadius: 8,
-                      ),
-                      BoxShadow(
-                        color: const Color(
-                          0xFFFF4488,
-                        ).withValues(alpha: 0.25 * pulse),
-                        blurRadius: 20,
-                        spreadRadius: 4,
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Orbit ring
-                Transform.rotate(
-                  angle: orbit,
-                  child: CustomPaint(
-                    size: const Size(68, 68),
-                    painter: _OrbitRingPainter(),
-                  ),
-                ),
-
-                // Main sphere
-                Container(
-                  width: 58,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const RadialGradient(
-                      center: Alignment(-0.3, -0.4),
-                      radius: 0.85,
-                      colors: [Color(0xFF9C6FE0), Color(0xFF4A148C)],
+          onTapDown: (_) => setState(() => _isPressed = true),
+          onTapUp: (_) {
+            setState(() => _isPressed = false);
+            _openChat();
+          },
+          onTapCancel: () => setState(() => _isPressed = false),
+          child: AnimatedScale(
+            scale: _isPressed ? 0.90 : 1.0,
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOutCubic,
+            child: SizedBox(
+              width: 68,
+              height: 68,
+              child: Stack(
+                alignment: Alignment.center,
+                clipBehavior: Clip.none,
+                children: [
+                  // Outer glow
+                  Container(
+                    width: 68 + pulse * 14,
+                    height: 68 + pulse * 14,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(
+                            0xFFAA44FF,
+                          ).withValues(alpha: 0.35 * pulse),
+                          blurRadius: 28,
+                          spreadRadius: 8,
+                        ),
+                        BoxShadow(
+                          color: const Color(
+                            0xFFFF4488,
+                          ).withValues(alpha: 0.25 * pulse),
+                          blurRadius: 20,
+                          spreadRadius: 4,
+                        ),
+                      ],
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF7E57C2).withValues(alpha: 0.6),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
                   ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Glass highlight
-                      Positioned(
-                        top: 8,
-                        left: 10,
-                        child: Container(
-                          width: 16,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            borderRadius: BorderRadius.circular(8),
+
+                  // Orbit ring
+                  Transform.rotate(
+                    angle: orbit,
+                    child: CustomPaint(
+                      size: const Size(68, 68),
+                      painter: _OrbitRingPainter(),
+                    ),
+                  ),
+
+                  // Main sphere
+                  Container(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const RadialGradient(
+                        center: Alignment(-0.3, -0.4),
+                        radius: 0.85,
+                        colors: [Color(0xFF9C6FE0), Color(0xFF4A148C)],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF7E57C2).withValues(alpha: 0.6),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Glass highlight
+                        Positioned(
+                          top: 8,
+                          left: 10,
+                          child: Container(
+                            width: 16,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
-                      ),
-                      const Text('🫀', style: TextStyle(fontSize: 26)),
-                    ],
+                        const Text('👩‍⚕️', style: TextStyle(fontSize: 26)),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+
+                  // Floating Mini Tooltip Badge: "Sarah AI"
+                  Positioned(
+                    top: -6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFE040FB), Color(0xFF7C4DFF)],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFE040FB).withOpacity(0.4),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.chat_bubble_outline_rounded,
+                            color: Colors.white,
+                            size: 9,
+                          ),
+                          SizedBox(width: 3),
+                          Text(
+                            "Sarah AI",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );

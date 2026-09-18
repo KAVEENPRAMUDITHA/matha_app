@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/matha_background.dart';
 import '../widgets/floating_chatbot.dart';
+import '../widgets/floating_cry_detector.dart';
 import 'home_screen.dart';
 import 'reports_screen.dart';
 import 'clinic_screen.dart';
@@ -39,8 +40,9 @@ class _MainNavigationState extends State<MainNavigation> {
               child: _screens[_selectedIndex],
             ),
           ),
-          // Floating 3D Chatbot — visible on all pages
-          const FloatingChatbot(),
+          // Floating 3D AI Assistant Stack — visible on all pages
+          const FloatingChatbot(bottom: 95, right: 20),
+          const FloatingCryDetector(bottom: 175, right: 20),
         ],
       ),
       bottomNavigationBar: _buildPremiumNavBar(bottomPadding),

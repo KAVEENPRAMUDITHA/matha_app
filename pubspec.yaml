@@ -11,6 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  record: ^5.2.1 # ශබ්දය පටිගත කිරීමට (Audio Recording)
+  path_provider: ^2.1.2
+
   # Icons
   cupertino_icons: ^1.0.8
 
@@ -53,3 +56,7 @@ flutter:
     - assets/maatha_logo.png
     - assets/maathalogo.png
     - assets/avatars/
+
+dependency_overrides:
+  record_platform_interface: 1.1.0
+

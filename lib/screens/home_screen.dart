@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../widgets/matha_background.dart'; 
 import '../services/sos_service.dart';
+import 'baby_cry_analyzer_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -97,9 +98,11 @@ class HomeScreen extends StatelessWidget {
                 _buildDailyTipCard(),
                 _buildSectionTitle("Baby's Growth | දරුවාගේ වර්ධනය"),
                 _buildBabyGrowthCard(weeks, getBabyGrowthInfo(weeks)),
+                _buildSectionTitle("AI Baby Cry Analyzer | බිළිඳු හඬ විශ්ලේෂකය"),
+                _buildBabyCryCard(context),
                 _buildSectionTitle("Health Status | සෞඛ්‍ය තත්ත්වය"),
                 _buildRiskStatus(riskStatus),
-                const SizedBox(height: 100),
+                const SizedBox(height: 120),
               ],
             ),
           );
@@ -292,6 +295,117 @@ class HomeScreen extends StatelessWidget {
                 Text("සතිය $week - ${info['fruit']}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1565C0))),
                 Text(info['desc']!, style: const TextStyle(fontSize: 13, color: Colors.black87)),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBabyCryCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.92),
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: const Color(0xFFFF80AB).withOpacity(0.4), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFE91E63).withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF80AB), Color(0xFFE91E63)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFE91E63).withOpacity(0.35),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: const Text("👶🎙️", style: TextStyle(fontSize: 24)),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "බිළිඳු හඬ විශ්ලේෂණය",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Color(0xFF2C3E50),
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      "දරුවා අඬන හේතුව තත්පර 5න් AI මඟින් දැනගන්න",
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  PageRouteBuilder(
+                    opaque: false,
+                    barrierColor: Colors.black26,
+                    pageBuilder: (_, __, ___) => const BabyCryAnalyzerScreen(),
+                    transitionsBuilder: (_, animation, __, child) {
+                      return SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 1),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOutCubic,
+                          ),
+                        ),
+                        child: child,
+                      );
+                    },
+                    transitionDuration: const Duration(milliseconds: 400),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE91E63),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 2,
+              ),
+              icon: const Icon(Icons.mic_rounded, size: 18),
+              label: const Text(
+                "හඬ පරීක්ෂා කරන්න (Analyze Cry)",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
             ),
           ),
         ],
