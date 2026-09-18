@@ -13,7 +13,9 @@ class SOSService {
     try {
       // 1. පද්ධතියට Alert එක යැවීම (Midwife හට පෙනෙන ලෙස)
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       await _db.collection('emergencies').add({
