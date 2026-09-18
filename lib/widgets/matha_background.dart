@@ -1,6 +1,10 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+// ===================================================================
+//  MAATHA AMBIENT BACKGROUND — Ultra-Smooth Luminous Maternal Canvas
+// ===================================================================
+
 class MathaBackground extends StatefulWidget {
   final Widget child;
 
@@ -10,16 +14,16 @@ class MathaBackground extends StatefulWidget {
   State<MathaBackground> createState() => _MathaBackgroundState();
 }
 
-class _MathaBackgroundState extends State<MathaBackground> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+class _MathaBackgroundState extends State<MathaBackground>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    // ඉතාමත් සිනිඳු ඇනිමේෂන් එකක් සඳහා තත්පර 25ක කාලයක්
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 25),
+      duration: const Duration(seconds: 20),
     )..repeat();
   }
 
@@ -34,63 +38,86 @@ class _MathaBackgroundState extends State<MathaBackground> with SingleTickerProv
     return Scaffold(
       body: Stack(
         children: [
-          // 1. Premium Soft Gradient Background
+          // 1. Multi-tone Luxury Pastel Gradient Base
           Container(
             width: double.infinity,
             height: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFFFFF0F3), // මෘදු රෝස
-                  Color(0xFFF8F0FF), // මෘදු ලැවෙන්ඩර්
-                  Color(0xFFEDF7FF), // මෘදු නිල්
+                  Color(0xFFFFF1F4), // Ultra soft blush rose
+                  Color(0xFFF7F3FF), // Silky lavender mist
+                  Color(0xFFEFF8FF), // Serene celestial sky
+                  Color(0xFFF5FFFA), // Refreshing soft mint
                 ],
+                stops: [0.0, 0.35, 0.70, 1.0],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
           ),
 
-          // 2. පසුබිමේ ඇති මෘදු Glowing Orbs (සන්සුන් බව සඳහා)
-          Positioned(
-            top: -100,
-            right: -50,
-            child: _buildGlowingOrb(350, const Color(0xFFFFD1DC).withOpacity(0.4)),
-          ),
-          Positioned(
-            bottom: -80,
-            left: -60,
-            child: _buildGlowingOrb(300, const Color(0xFFBBDEFB).withOpacity(0.3)),
-          ),
-
-          // 3. ඇනිමේට් වන අයිකන (Floating & Rotating Icons)
+          // 2. Animated Floating Bokeh Glow Orbs
           AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {
+              final t = _controller.value * 2 * pi;
+              final shiftX1 = cos(t) * 35;
+              final shiftY1 = sin(t) * 25;
+              final shiftX2 = -sin(t) * 30;
+              final shiftY2 = cos(t) * 25;
+
               return Stack(
                 children: [
-                  // මෙහි අයිකන වල ප්‍රමාණය (Size) සහ පිහිටීම ලස්සනට සකසා ඇත
-                  _buildEnhancedIcon(Icons.child_care_rounded, 0.1, 0.15, 85, 0.5),
-                  _buildEnhancedIcon(Icons.favorite_rounded, 0.8, 0.1, 70, -0.3),
-                  _buildEnhancedIcon(Icons.auto_awesome_rounded, 0.05, 0.75, 55, 0.8),
-                  _buildEnhancedIcon(Icons.bedroom_baby_rounded, 0.45, 0.8, 95, 0.2),
-                  _buildEnhancedIcon(Icons.cloud_rounded, 0.65, 0.65, 120, -0.1),
-                  _buildEnhancedIcon(Icons.toys_rounded, 0.88, 0.75, 80, 1.2),
-                  _buildEnhancedIcon(Icons.stars_rounded, 0.25, 0.05, 75, -0.5),
-                  _buildEnhancedIcon(Icons.stroller_rounded, 0.35, 0.5, 50, 0.4),
+                  // Top-Right Rose-Pink Glow
+                  Positioned(
+                    top: -60 + shiftY1,
+                    right: -50 + shiftX1,
+                    child: _buildGlowingOrb(
+                      340,
+                      const Color(0xFFFF80AB).withValues(alpha: 0.28),
+                    ),
+                  ),
+
+                  // Bottom-Left Sky-Cyan Glow
+                  Positioned(
+                    bottom: -60 + shiftY2,
+                    left: -50 + shiftX2,
+                    child: _buildGlowingOrb(
+                      320,
+                      const Color(0xFF00E5FF).withValues(alpha: 0.20),
+                    ),
+                  ),
+
+                  // Center-Right Lavender Glow
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.45 + shiftY1 * 0.5,
+                    right: -70 + shiftX2 * 0.5,
+                    child: _buildGlowingOrb(
+                      260,
+                      const Color(0xFFB388FF).withValues(alpha: 0.22),
+                    ),
+                  ),
+
+                  // Floating Ambient Maternal Icons
+                  _buildFloatingIcon(Icons.child_care_rounded, 0.12, 0.10, 50, 0.3),
+                  _buildFloatingIcon(Icons.favorite_rounded, 0.78, 0.08, 44, -0.4),
+                  _buildFloatingIcon(Icons.auto_awesome_rounded, 0.06, 0.78, 38, 0.6),
+                  _buildFloatingIcon(Icons.stars_rounded, 0.42, 0.85, 48, -0.2),
+                  _buildFloatingIcon(Icons.cloud_rounded, 0.68, 0.72, 60, 0.1),
+                  _buildFloatingIcon(Icons.spa_rounded, 0.28, 0.05, 42, 0.4),
                 ],
               );
             },
           ),
 
-          // 4. ඉදිරියෙන් දිස්වන Content එක
+          // 3. Foreground Safe Content
           SafeArea(child: widget.child),
         ],
       ),
     );
   }
 
-  // පසුබිම් ආලෝක ගෝල සාදන Method එක
   Widget _buildGlowingOrb(double size, Color color) {
     return Container(
       width: size,
@@ -100,32 +127,37 @@ class _MathaBackgroundState extends State<MathaBackground> with SingleTickerProv
         boxShadow: [
           BoxShadow(
             color: color,
-            blurRadius: 100,
-            spreadRadius: 40,
-          )
+            blurRadius: 110,
+            spreadRadius: 45,
+          ),
         ],
       ),
     );
   }
 
-  // පාවෙන සහ කැරකෙන අයිකන සාදන Method එක (මෙය කලින් කේතයේ මගහැරී තිබුණි)
-  Widget _buildEnhancedIcon(IconData icon, double top, double left, double size, double initialRotation) {
-    // සිනිඳු චලනයන් සඳහා සූත්‍ර
-    double verticalShift = sin(_controller.value * 2 * pi) * 25;
-    double horizontalShift = cos(_controller.value * 2 * pi) * 15;
-    double rotation = initialRotation + (sin(_controller.value * 2 * pi) * 0.2);
+  Widget _buildFloatingIcon(
+    IconData icon,
+    double topRatio,
+    double leftRatio,
+    double size,
+    double initialRotation,
+  ) {
+    final t = _controller.value * 2 * pi;
+    final verticalShift = sin(t) * 18;
+    final horizontalShift = cos(t) * 12;
+    final rotation = initialRotation + (sin(t) * 0.15);
 
     return Positioned(
-      top: MediaQuery.of(context).size.height * top + verticalShift,
-      left: MediaQuery.of(context).size.width * left + horizontalShift,
+      top: MediaQuery.of(context).size.height * topRatio + verticalShift,
+      left: MediaQuery.of(context).size.width * leftRatio + horizontalShift,
       child: Transform.rotate(
         angle: rotation,
         child: Opacity(
-          opacity: 0.12, // ඉතාමත් මෘදු ලෙස දිස්වීමට
+          opacity: 0.14,
           child: Icon(
             icon,
             size: size,
-            color: const Color(0xFFF06292).withOpacity(0.5),
+            color: const Color(0xFFF06292).withValues(alpha: 0.6),
           ),
         ),
       ),

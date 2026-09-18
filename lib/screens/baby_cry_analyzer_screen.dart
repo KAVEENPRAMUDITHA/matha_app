@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
+import '../widgets/matha_background.dart';
 
 /// =============================================================================
-/// MAATHA (මාතා) - BABY CRY ANALYZER FLUTTER SCREEN (HUGGING FACE LIVE CONNECTED)
+/// MAATHA (මාතා) - BABY CRY ANALYZER FLUTTER SCREEN (LIVE AI INTEGRATED)
 /// =============================================================================
 
 class BabyCryAnalyzerScreen extends StatefulWidget {
-  const BabyCryAnalyzerScreen({Key? key}) : super(key: key);
+  const BabyCryAnalyzerScreen({super.key});
 
   @override
   State<BabyCryAnalyzerScreen> createState() => _BabyCryAnalyzerScreenState();
@@ -19,7 +20,6 @@ class BabyCryAnalyzerScreen extends StatefulWidget {
 
 class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
     with SingleTickerProviderStateMixin {
-  // Hugging Face Live Cloud Endpoint
   final String _hfBaseUrl = "https://yemani-maatha-cry-api.hf.space";
 
   late final AudioRecorder _audioRecorder;
@@ -40,7 +40,7 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
     _audioRecorder = AudioRecorder();
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
   }
 
@@ -63,7 +63,8 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
     try {
       if (await _audioRecorder.hasPermission()) {
         final dir = await getTemporaryDirectory();
-        _recordedFilePath = '${dir.path}/baby_cry_${DateTime.now().millisecondsSinceEpoch}.wav';
+        _recordedFilePath =
+            '${dir.path}/baby_cry_${DateTime.now().millisecondsSinceEpoch}.wav';
 
         await _audioRecorder.start(
           const RecordConfig(
@@ -126,30 +127,34 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
       var uploadRequest = http.MultipartRequest('POST', uploadUri);
       uploadRequest.files.add(await http.MultipartFile.fromPath('files', path));
 
-      var streamedUpload = await uploadRequest.send().timeout(const Duration(seconds: 25));
+      var streamedUpload =
+          await uploadRequest.send().timeout(const Duration(seconds: 25));
       var uploadResponse = await http.Response.fromStream(streamedUpload);
 
       if (uploadResponse.statusCode != 200) {
         throw Exception("Upload failed (${uploadResponse.statusCode})");
       }
 
-      final List<dynamic> uploadList = json.decode(utf8.decode(uploadResponse.bodyBytes));
+      final List<dynamic> uploadList =
+          json.decode(utf8.decode(uploadResponse.bodyBytes));
       final String remoteUploadedPath = uploadList[0].toString();
 
       // 2. Trigger Model Prediction
       final predictUri = Uri.parse('$_hfBaseUrl/gradio_api/call/predict');
-      final predictResponse = await http.post(
-        predictUri,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'data': [
-            {
-              'path': remoteUploadedPath,
-              'meta': {'_type': 'gradio.FileData'}
-            }
-          ]
-        }),
-      ).timeout(const Duration(seconds: 25));
+      final predictResponse = await http
+          .post(
+            predictUri,
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'data': [
+                {
+                  'path': remoteUploadedPath,
+                  'meta': {'_type': 'gradio.FileData'}
+                }
+              ]
+            }),
+          )
+          .timeout(const Duration(seconds: 25));
 
       if (predictResponse.statusCode != 200) {
         throw Exception("Inference failed (${predictResponse.statusCode})");
@@ -158,8 +163,10 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
       final String eventId = json.decode(predictResponse.body)['event_id'];
 
       // 3. Fetch Final Prediction & Advice
-      final resultUri = Uri.parse('$_hfBaseUrl/gradio_api/call/predict/$eventId');
-      final resultResponse = await http.get(resultUri).timeout(const Duration(seconds: 30));
+      final resultUri =
+          Uri.parse('$_hfBaseUrl/gradio_api/call/predict/$eventId');
+      final resultResponse =
+          await http.get(resultUri).timeout(const Duration(seconds: 30));
 
       if (resultResponse.statusCode == 200) {
         final bodyText = utf8.decode(resultResponse.bodyBytes);
@@ -191,48 +198,68 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
     } catch (e) {
       setState(() {
         _isAnalyzing = false;
-        _errorMessage = "සර්වර් එක සම්බන්ධ කරගත නොහැක ($e). අන්තර්ජාලය පරීක්ෂා කරන්න.";
+        _errorMessage =
+            "සර්වර් එක සම්බන්ධ කරගත නොහැක ($e). අන්තර්ජාලය පරීක්ෂා කරන්න.";
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFFBF8F9),
-      appBar: AppBar(
-        title: const Text(
-          "මාතා - බිළිඳු හඬ විශ්ලේෂකය",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+    return MathaBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text(
+            "බිළිඳු හඬ විශ්ලේෂකය / CRY AI",
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 18,
+              color: Color(0xFF1565C0),
+              letterSpacing: 0.5,
+            ),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Color(0xFF1565C0),
+                size: 16,
+              ),
+            ),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-        backgroundColor: const Color(0xFFE91E63),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Header Card
               _buildHeaderCard(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Recording / Interaction Area
               _buildRecordingSection(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Error Message
               if (_errorMessage != null) _buildErrorCard(_errorMessage!),
 
               // Analysis Results
-              if (_analysisResult != null) _buildResultSection(_analysisResult!),
+              if (_analysisResult != null)
+                _buildResultSection(_analysisResult!),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 50),
             ],
           ),
         ),
@@ -242,27 +269,30 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
 
   Widget _buildHeaderCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: Colors.white, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.pink.withOpacity(0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: const Color(0xFFE91E63).withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFFCE4EC),
-              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF00E5FF), Color(0xFF00B0FF)],
+              ),
+              borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text("🍼", style: TextStyle(fontSize: 28)),
+            child: const Text("🍼🎙️", style: TextStyle(fontSize: 26)),
           ),
           const SizedBox(width: 14),
           const Expanded(
@@ -273,14 +303,14 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
                   "AI බිළිඳු හඬ හඳුනාගැනීම",
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                     color: Color(0xFF2C3E50),
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: 3),
                 Text(
                   "දරුවා අඬන විට මයික්‍රෆෝනය ළං කර තත්පර 5ක් පටිගත කරන්න.",
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                  style: TextStyle(fontSize: 12, color: Colors.black54),
                 ),
               ],
             ),
@@ -292,19 +322,21 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
 
   Widget _buildRecordingSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        color: Colors.white.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(32),
         border: Border.all(
-          color: _isRecording ? const Color(0xFFE91E63) : Colors.pink.shade50,
+          color: _isRecording ? const Color(0xFFE91E63) : Colors.white,
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.pink.withOpacity(0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: _isRecording
+                ? const Color(0xFFE91E63).withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.05),
+            blurRadius: 22,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -313,70 +345,101 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
           if (_isAnalyzing)
             Column(
               children: [
-                const CircularProgressIndicator(color: Color(0xFFE91E63)),
-                const SizedBox(height: 16),
+                const SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: CircularProgressIndicator(
+                    color: Color(0xFFE91E63),
+                    strokeWidth: 4,
+                  ),
+                ),
+                const SizedBox(height: 20),
                 const Text(
                   "AI විශ්ලේෂණය වෙමින් පවතී...",
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
                     color: Color(0xFFE91E63),
                   ),
                 ),
                 const SizedBox(height: 6),
                 const Text(
-                  "කරුණාකර මොහොතක් රැඳී සිටින්න",
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                  "Hugging Face AI මාදිලිය ශබ්ද තරංග පරීක්ෂා කරයි",
+                  style: TextStyle(fontSize: 12.5, color: Colors.grey),
                 ),
               ],
             )
           else if (_isRecording)
             Column(
               children: [
+                // Live Sound Wave Visualizer
                 AnimatedBuilder(
                   animation: _pulseController,
                   builder: (context, child) {
-                    return Transform.scale(
-                      scale: 1.0 + (_pulseController.value * 0.15),
-                      child: Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFFE91E63).withOpacity(0.15),
+                    return Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(11, (i) {
+                            final factor = (sin((_pulseController.value * 2 * 3.1415) + (i * 0.6)) + 1) / 2;
+                            final height = 14.0 + (factor * 36.0);
+                            return Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 3),
+                              width: 5,
+                              height: height,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF00E5FF), Color(0xFFE91E63)],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            );
+                          }),
                         ),
-                        child: Center(
-                          child: Container(
-                            width: 65,
-                            height: 65,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFFE91E63),
+                        const SizedBox(height: 22),
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 95,
+                              height: 95,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFFE91E63).withValues(alpha: 0.15 + (_pulseController.value * 0.15)),
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.mic,
-                              color: Colors.white,
-                              size: 36,
+                            Container(
+                              width: 70,
+                              height: 70,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [Color(0xFFFF4081), Color(0xFFE91E63)],
+                                ),
+                              ),
+                              child: const Icon(Icons.mic, color: Colors.white, size: 38),
                             ),
-                          ),
+                          ],
                         ),
-                      ),
+                      ],
                     );
                   },
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 20),
                 Text(
                   "හඬ පටිගත වෙමින් පවතී... ($_recordSecondsRemaining s)",
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
                     color: Color(0xFFE91E63),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 const Text(
-                  "දරුවාගේ ශබ්දය පැහැදිලිව ලබා දෙන්න",
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                  "දරුවාගේ ශබ්දය මයික්‍රෆෝනයට පැහැදිලිව ලබා දෙන්න",
+                  style: TextStyle(fontSize: 12.5, color: Colors.grey),
                 ),
               ],
             )
@@ -386,43 +449,43 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
                 GestureDetector(
                   onTap: _startRecording,
                   child: Container(
-                    width: 85,
-                    height: 85,
+                    width: 95,
+                    height: 95,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: const LinearGradient(
-                        colors: [Color(0xFFEC407A), Color(0xFFE91E63)],
+                        colors: [Color(0xFFFF80AB), Color(0xFFE91E63), Color(0xFF880E4F)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFE91E63).withOpacity(0.35),
-                          blurRadius: 14,
-                          offset: const Offset(0, 6),
+                          color: const Color(0xFFE91E63).withValues(alpha: 0.4),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
                     child: const Icon(
-                      Icons.mic_none_rounded,
+                      Icons.mic_rounded,
                       color: Colors.white,
-                      size: 44,
+                      size: 48,
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
                 const Text(
                   "හඬ පටිගත කිරීමට ඔබන්න",
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
                     color: Color(0xFF2C3E50),
                   ),
                 ),
                 const SizedBox(height: 4),
                 const Text(
                   "තත්පර 5ක ශබ්දය ස්වයංක්‍රීයව විශ්ලේෂණය වේ",
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                  style: TextStyle(fontSize: 12.5, color: Colors.grey),
                 ),
               ],
             ),
@@ -434,20 +497,20 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
   Widget _buildErrorCard(String error) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFFFEBEE),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.red.shade200),
       ),
       child: Row(
         children: [
           const Icon(Icons.error_outline, color: Colors.red),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               error,
-              style: const TextStyle(color: Colors.red, fontSize: 13),
+              style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -462,7 +525,8 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
     final String icon = pred['icon'] ?? '👶';
     final String titleSi = pred['title_si'] ?? '';
     final String titleEn = pred['title_en'] ?? '';
-    final double confidence = (pred['confidence_pct'] as num?)?.toDouble() ?? 0.0;
+    final double confidence =
+        (pred['confidence_pct'] as num?)?.toDouble() ?? 0.0;
     final String summarySi = pred['summary_si'] ?? '';
     final String adviceSi = pred['advice_si'] ?? '';
 
@@ -471,16 +535,16 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
       children: [
         // Main Diagnosis Card
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE91E63).withOpacity(0.2)),
+            color: Colors.white.withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: const Color(0xFFE91E63).withValues(alpha: 0.3)),
             boxShadow: [
               BoxShadow(
-                color: Colors.pink.withOpacity(0.08),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
+                color: const Color(0xFFE91E63).withValues(alpha: 0.1),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -490,14 +554,14 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFCE4EC),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(18),
                     ),
-                    child: Text(icon, style: const TextStyle(fontSize: 32)),
+                    child: Text(icon, style: const TextStyle(fontSize: 34)),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -505,18 +569,18 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
                         Text(
                           titleSi,
                           style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
                             color: Color(0xFF2C3E50),
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          "$titleEn • විශ්වාසනීයත්වය: ${confidence.toStringAsFixed(1)}%",
-                          style: TextStyle(
+                          "$titleEn • නිවැරදිභාවය: ${confidence.toStringAsFixed(1)}%",
+                          style: const TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFFE91E63),
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFE91E63),
                           ),
                         ),
                       ],
@@ -528,22 +592,30 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
 
               // Summary
               const Text(
-                "හේතුව:",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF37474F)),
+                "හේතුව (Diagnosis):",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Color(0xFF37474F),
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 summarySi,
-                style: const TextStyle(fontSize: 14, color: Color(0xFF455A64), height: 1.4),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF455A64),
+                  height: 1.4,
+                ),
               ),
               const SizedBox(height: 16),
 
               // Maternal Advice Box
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF8E1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(18),
                   border: Border.all(color: const Color(0xFFFFE082)),
                 ),
                 child: Column(
@@ -551,7 +623,7 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.lightbulb_outline, color: Color(0xFFF57F17), size: 20),
+                        Icon(Icons.lightbulb_rounded, color: Color(0xFFF57F17), size: 20),
                         SizedBox(width: 8),
                         Text(
                           "අම්මාට උපදෙස් (Maternal Advice):",
@@ -566,7 +638,11 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
                     const SizedBox(height: 8),
                     Text(
                       adviceSi,
-                      style: const TextStyle(fontSize: 13.5, color: Color(0xFF4E342E), height: 1.5),
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        color: Color(0xFF4E342E),
+                        height: 1.5,
+                      ),
                     ),
                   ],
                 ),
@@ -574,35 +650,34 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
             ],
           ),
         ),
-
         const SizedBox(height: 20),
 
         // Probability Breakdown
         if (breakdown != null) ...[
           const Text(
-            "සම්භාවිතා ප්‍රතිශත (Probabilities)",
+            "සම්භාවිතා ප්‍රතිශත (AI Probability Breakdown)",
             style: TextStyle(
               fontSize: 15,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
               color: Color(0xFF2C3E50),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           ...breakdown.entries.map((entry) {
             final val = entry.value;
             final double pct = (val['percentage'] as num?)?.toDouble() ?? 0.0;
             final String nameSi = val['name_si'] ?? entry.key;
 
             return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
+                color: Colors.white.withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
-                    blurRadius: 4,
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
                 ],
@@ -615,34 +690,37 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
                     children: [
                       Text(
                         nameSi,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         "${pct.toStringAsFixed(1)}%",
                         style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w900,
                           color: Color(0xFFE91E63),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(6),
                     child: LinearProgressIndicator(
                       value: pct / 100.0,
                       backgroundColor: Colors.grey.shade200,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         pct > 50 ? const Color(0xFFE91E63) : const Color(0xFFF48FB1),
                       ),
-                      minHeight: 6,
+                      minHeight: 7,
                     ),
                   ),
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ],
     );

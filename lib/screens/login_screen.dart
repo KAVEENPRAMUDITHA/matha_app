@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import '../services/auth_service.dart';
 import '../widgets/matha_background.dart';
 
@@ -7,7 +6,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
@@ -25,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 1400),
     );
     _fadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeIn),
@@ -44,18 +43,18 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   Future<void> _loginLogic() async {
     if (_nicController.text.isNotEmpty && _passController.text.isNotEmpty) {
       setState(() => _isLoading = true);
-      
+
       var user = await _auth.signIn(
-        _nicController.text,
+        _nicController.text.trim(),
         _passController.text,
       );
 
       if (mounted) setState(() => _isLoading = false);
 
-      if (user != null) {
-        // Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        _showErrorSnackBar("පිවිසීම අසාර්ථකයි. විස්තර නැවත පරීක්ෂා කරන්න.\nLogin Failed. Check your details.");
+      if (user == null) {
+        _showErrorSnackBar(
+          "පිවිසීම අසාර්ථකයි. විස්තර නැවත පරීක්ෂා කරන්න.\nLogin Failed. Check your details.",
+        );
       }
     } else {
       _showErrorSnackBar("කරුණාකර සියලු විස්තර ඇතුළත් කරන්න.\nPlease fill all details.");
@@ -65,10 +64,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
@@ -76,80 +79,91 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // පාවෙන අයිකන සහිත පසුබිම භාවිතා කිරීම
       body: MathaBackground(
         child: FadeTransition(
           opacity: _fadeInAnimation,
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 25),
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
+                  const SizedBox(height: 20),
+                  // Logo Container
                   Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(22),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFF06292).withValues(alpha: 0.2),
+                          blurRadius: 30,
+                          spreadRadius: 4,
+                        ),
+                      ],
                     ),
                     child: const Icon(
                       Icons.favorite_rounded,
                       color: Color(0xFFF06292),
-                      size: 80,
+                      size: 64,
                     ),
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 16),
                   const Text(
-                    "මාතා",
+                    "මාතා • MAATHA",
                     style: TextStyle(
-                      fontSize: 42,
+                      fontSize: 32,
                       fontWeight: FontWeight.w900,
                       color: Color(0xFF1565C0),
                       letterSpacing: 1.5,
                     ),
                   ),
                   const Text(
-                    "MAATHA",
+                    "ඩිජිටල් මාතෘ හා ළමා සත්කාරක වේදිකාව",
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black45,
-                      letterSpacing: 3,
+                      color: Color(0xFFF06292),
+                      letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 45),
+                  const SizedBox(height: 35),
 
+                  // Login Form Card
                   Container(
-                    padding: const EdgeInsets.all(30),
+                    padding: const EdgeInsets.all(28),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.85),
-                      borderRadius: BorderRadius.circular(35),
+                      color: Colors.white.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(color: Colors.white, width: 2),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
-                          blurRadius: 25,
-                          offset: const Offset(0, 12),
-                        )
+                          color: Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 28,
+                          offset: const Offset(0, 10),
+                        ),
                       ],
                     ),
                     child: Column(
                       children: [
                         const Text(
-                          "ආයුබෝවන්\nWelcome",
+                          "ආයුබෝවන් • Welcome",
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 19,
                             fontWeight: FontWeight.w900,
-                            color: Colors.black87,
+                            color: Color(0xFF2C3E50),
                           ),
                         ),
-                        const SizedBox(height: 35),
+                        const SizedBox(height: 26),
 
                         _buildInputField(
                           controller: _nicController,
                           label: "හැඳුනුම්පත් අංකය (NIC)",
                           icon: Icons.badge_outlined,
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 18),
 
                         _buildInputField(
                           controller: _passController,
@@ -157,15 +171,16 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           icon: Icons.lock_outline_rounded,
                           isPassword: true,
                         ),
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 32),
 
                         _isLoading
                             ? const CircularProgressIndicator(color: Color(0xFFF06292))
                             : InkWell(
                                 onTap: _loginLogic,
+                                borderRadius: BorderRadius.circular(22),
                                 child: Container(
                                   width: double.infinity,
-                                  height: 65,
+                                  height: 58,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(22),
                                     gradient: const LinearGradient(
@@ -173,19 +188,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.pink.withOpacity(0.2),
-                                        blurRadius: 12,
+                                        color: const Color(0xFFF06292).withValues(alpha: 0.35),
+                                        blurRadius: 16,
                                         offset: const Offset(0, 6),
-                                      )
+                                      ),
                                     ],
                                   ),
                                   child: const Center(
                                     child: Text(
                                       "ඇතුල් වන්න / LOGIN",
                                       style: TextStyle(
-                                        fontSize: 18,
+                                        fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
+                                        letterSpacing: 0.5,
                                       ),
                                     ),
                                   ),
@@ -194,11 +210,16 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       ],
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 35),
                   const Text(
-                    "© 2026 Maatha Digital Maternal Care",
-                    style: TextStyle(color: Colors.black38, fontSize: 12, fontWeight: FontWeight.w600),
+                    "© 2026 Maatha Maternal & Infant Care",
+                    style: TextStyle(
+                      color: Colors.black38,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -217,26 +238,34 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     return TextField(
       controller: controller,
       obscureText: isPassword ? _isObscure : false,
-      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.black45, fontSize: 14, fontWeight: FontWeight.w600),
-        prefixIcon: Icon(icon, color: const Color(0xFF64B5F6), size: 26),
+        labelStyle: const TextStyle(
+          color: Colors.black45,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+        prefixIcon: Icon(icon, color: const Color(0xFF64B5F6), size: 24),
         suffixIcon: isPassword
             ? IconButton(
-                icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
+                icon: Icon(
+                  _isObscure ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.grey,
+                  size: 20,
+                ),
                 onPressed: () => setState(() => _isObscure = !_isObscure),
               )
             : null,
         filled: true,
         fillColor: Colors.grey.shade50,
-        contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+        contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(20),
           borderSide: const BorderSide(color: Colors.transparent),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(20),
           borderSide: const BorderSide(color: Color(0xFFF06292), width: 1.5),
         ),
       ),

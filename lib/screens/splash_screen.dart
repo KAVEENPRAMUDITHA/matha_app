@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'main_wrapper.dart'; 
-import '../widgets/matha_background.dart'; // පසුබිම් විජට් එක import කරන්න
+import 'main_wrapper.dart';
+import '../widgets/matha_background.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -10,7 +10,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
@@ -34,15 +35,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
-    Timer(const Duration(seconds: 4), () {
+    Timer(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.pushReplacement(
           context,
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const MainWrapper(),
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const MainWrapper(),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },
+            transitionDuration: const Duration(milliseconds: 600),
           ),
         );
       }
@@ -58,7 +61,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // පාවෙන අයිකන සහිත පසුබිම භාවිතා කිරීම
       body: MathaBackground(
         child: Stack(
           children: [
@@ -71,72 +73,73 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     child: ScaleTransition(
                       scale: _scaleAnimation,
                       child: Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.85),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.pink.withOpacity(0.1),
-                              blurRadius: 30,
+                              color: const Color(0xFFF06292).withValues(alpha: 0.25),
+                              blurRadius: 40,
                               spreadRadius: 10,
-                            )
+                            ),
                           ],
                         ),
                         child: Image.asset(
-                          'assets/maathalogo.png', 
-                          width: 180, 
-                          height: 180,
+                          'assets/maathalogo.png',
+                          width: 170,
+                          height: 170,
                           errorBuilder: (context, error, stackTrace) => const Icon(
-                            Icons.favorite_rounded, 
-                            size: 100, 
+                            Icons.favorite_rounded,
+                            size: 100,
                             color: Color(0xFFF06292),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 36),
                   const Text(
-                    "ආදරණීය සත්කාරය",
+                    "මාතා • MAATHA",
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 26,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFFF06292),
-                      letterSpacing: 1.2,
+                      color: Color(0xFF1565C0),
+                      letterSpacing: 2.0,
                     ),
                   ),
+                  const SizedBox(height: 4),
                   const Text(
-                    "LOVING CARE FOR YOU",
+                    "ආදරණීය සත්කාරය • LOVING MATERNAL CARE",
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black38,
-                      letterSpacing: 3,
+                      color: Color(0xFFF06292),
+                      letterSpacing: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 45),
                   const SizedBox(
-                    width: 40,
-                    height: 40,
+                    width: 36,
+                    height: 36,
                     child: CircularProgressIndicator(
                       strokeWidth: 3,
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF64B5F6)),
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF06292)),
                     ),
                   ),
                 ],
               ),
             ),
             const Positioned(
-              bottom: 30,
+              bottom: 25,
               left: 0,
               right: 0,
               child: Text(
-                "Powered by Maatha Digital",
+                "Digital Maternal & Infant Healthcare Platform",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.black26,
+                  fontSize: 11.5,
+                  color: Colors.black38,
                   fontWeight: FontWeight.w600,
                 ),
               ),

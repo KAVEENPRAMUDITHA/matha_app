@@ -221,7 +221,7 @@ class _FloatingChatbotState extends State<FloatingChatbot>
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFE040FB).withOpacity(0.4),
+                            color: const Color(0xFFE040FB).withValues(alpha: 0.4),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
