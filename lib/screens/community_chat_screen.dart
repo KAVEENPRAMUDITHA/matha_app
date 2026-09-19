@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/community_message.dart';
 import '../services/community_chat_service.dart';
 
@@ -125,6 +126,59 @@ class _CommunityChatScreenState extends State<CommunityChatScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _openMapOrUrl(BuildContext context, String rawUrl) async {
+    try {
+      String cleanUrl = rawUrl.trim();
+      while (cleanUrl.endsWith('.') ||
+          cleanUrl.endsWith(',') ||
+          cleanUrl.endsWith(')') ||
+          cleanUrl.endsWith(']')) {
+        cleanUrl = cleanUrl.substring(0, cleanUrl.length - 1);
+      }
+
+      final Uri uri = Uri.parse(cleanUrl);
+      bool launched = false;
+
+      // 1. External application launch
+      try {
+        launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {}
+
+      // 2. Default browser / app launch
+      if (!launched) {
+        try {
+          launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
+        } catch (_) {}
+      }
+
+      // 3. Geo URI fallback if coordinates exist in query
+      if (!launched) {
+        final reg = RegExp(r'q=([0-9.-]+),([0-9.-]+)');
+        final match = reg.firstMatch(cleanUrl);
+        if (match != null) {
+          final lat = match.group(1);
+          final lng = match.group(2);
+          final geoUri = Uri.parse('geo:$lat,$lng?q=$lat,$lng');
+          try {
+            launched = await launchUrl(geoUri, mode: LaunchMode.externalApplication);
+          } catch (_) {}
+        }
+      }
+
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Google Maps විවෘත කිරීමට නොහැකි විය")),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("දෝෂයකි: $e")),
+        );
+      }
+    }
   }
 
   @override
@@ -587,6 +641,36 @@ class _CommunityChatScreenState extends State<CommunityChatScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+
+                  // Interactive Location / URL Button
+                  if (RegExp(r'(https?:\/\/[^\s]+)').hasMatch(msg.message)) ...[
+                    const SizedBox(height: 8),
+                    () {
+                      final url = RegExp(r'(https?:\/\/[^\s]+)').firstMatch(msg.message)?.group(0);
+                      if (url == null) return const SizedBox.shrink();
+                      final bool isMap = url.contains('maps') || url.contains('google.com/maps') || url.contains('goo.gl');
+
+                      return ElevatedButton.icon(
+                        onPressed: () => _openMapOrUrl(context, url),
+                        icon: Icon(
+                          isMap ? Icons.location_on_rounded : Icons.open_in_new_rounded,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          isMap ? "Google Maps හි බලන්න (Open Map)" : "සබැඳිය විවෘත කරන්න",
+                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isMap ? const Color(0xFFD50000) : const Color(0xFF1976D2),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          elevation: 2,
+                        ),
+                      );
+                    }(),
+                  ],
                   const SizedBox(height: 8),
 
                   // Bottom Row: Time & Like Counter
