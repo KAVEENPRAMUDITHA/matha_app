@@ -3,6 +3,7 @@ import '../widgets/matha_background.dart';
 import '../widgets/floating_chatbot.dart';
 import '../widgets/floating_cry_detector.dart';
 import 'home_screen.dart';
+import 'community_chat_screen.dart';
 import 'reports_screen.dart';
 import 'clinic_screen.dart';
 import 'profile_screen.dart';
@@ -22,6 +23,7 @@ class _MainNavigationState extends State<MainNavigation> {
     ReportsScreen(),
     const ClinicScreen(),
     const ProfileScreen(),
+    const CommunityChatScreen(isTab: true),
   ];
 
   @override
@@ -40,9 +42,11 @@ class _MainNavigationState extends State<MainNavigation> {
               child: _screens[_selectedIndex],
             ),
           ),
-          // Floating 3D AI Assistant Stack — visible on all pages
-          const FloatingChatbot(bottom: 95, right: 20),
-          const FloatingCryDetector(bottom: 175, right: 20),
+          // Floating 3D AI Assistant Stack — hidden on Community Chat (tab 4) to avoid covering the send button and input area
+          if (_selectedIndex != 4) ...[
+            const FloatingChatbot(bottom: 95, right: 20),
+            const FloatingCryDetector(bottom: 175, right: 20),
+          ],
         ],
       ),
       bottomNavigationBar: _buildPremiumNavBar(bottomPadding),
@@ -79,6 +83,7 @@ class _MainNavigationState extends State<MainNavigation> {
               _buildNavItem(Icons.auto_graph_rounded, "වාර්තා", 1),
               _buildNavItem(Icons.calendar_month_rounded, "සායනය", 2),
               _buildNavItem(Icons.face_retouching_natural_rounded, "ගිණුම", 3),
+              _buildNavItem(Icons.groups_2_rounded, "ප්‍රජාව", 4),
             ],
           ),
         ),

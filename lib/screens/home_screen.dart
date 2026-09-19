@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/sos_service.dart';
 import 'baby_cry_analyzer_screen.dart';
+import 'community_chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -207,15 +208,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               _MotherWellnessHub(motherId: doc.id),
               const SizedBox(height: 20),
 
-              // 6. Baby Growth Comparison Card
+              // 6. 🌸 Midwife & Mothers Community Circle Banner
+              _buildCommunityCircleBanner(context, midwife),
+              const SizedBox(height: 20),
+
+              // 7. Baby Growth Comparison Card
               _buildBabyGrowthCard(weeks, getBabyGrowthInfo(weeks)),
               const SizedBox(height: 20),
 
-              // 7. AI Dual Assistant Banner (Baby Cry Analyzer & Sarah Chatbot)
+              // 8. AI Dual Assistant Banner (Baby Cry Analyzer & Sarah Chatbot)
               _buildAIAssistantsBanner(context),
               const SizedBox(height: 20),
 
-              // 8. Daily Health Tip
+              // 9. Daily Health Tip
               _buildDailyTipCard(),
               const SizedBox(height: 16),
 
@@ -521,6 +526,118 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
         ),
       ],
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  //  COMMUNITY CIRCLE BANNER
+  // ─────────────────────────────────────────────────────────────────
+  Widget _buildCommunityCircleBanner(BuildContext context, String midwife) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => Scaffold(
+              appBar: AppBar(
+                title: const Text(
+                  "මාතෘ ප්‍රජා කවය (Community)",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF1565C0),
+                elevation: 0,
+              ),
+              body: const CommunityChatScreen(isTab: false),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFF3E5F5), Color(0xFFE1F5FE)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: const Color(0xFFCE93D8).withValues(alpha: 0.6), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF8E24AA).withValues(alpha: 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF8E24AA).withValues(alpha: 0.15),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: const Text("💬", style: TextStyle(fontSize: 26)),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        "🌸 මාතෘ ප්‍රජා කවය",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14.5,
+                          color: Color(0xFF6A1B9A),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          "LIVE",
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2E7D32),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    "$midwife සහ ප්‍රදේශයේ මව්වරුන් සමඟ අදහස් බෙදාගන්න",
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: Color(0xFF6A1B9A)),
+          ],
+        ),
+      ),
     );
   }
 
