@@ -51,6 +51,38 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return "සුබ සන්ධ්‍යාවක් / Good Evening 🌙";
   }
 
+  // --- Today's Day & Date in Sinhala ---
+  String _getFormattedSinhalaDate() {
+    final now = DateTime.now();
+    final List<String> days = [
+      'සඳුදා',
+      'අඟහරුවාදා',
+      'බදාදා',
+      'බ්‍රහස්පතින්දා',
+      'සිකුරාදා',
+      'සෙනසුරාදා',
+      'ඉරිදා',
+    ];
+    final List<String> months = [
+      'ජනවාරි',
+      'පෙබරවාරි',
+      'මාර්තු',
+      'අප්‍රේල්',
+      'මැයි',
+      'ජූනි',
+      'ජූලි',
+      'අගෝස්තු',
+      'සැප්තැම්බර්',
+      'ඔක්තෝබර්',
+      'නොවැම්බර්',
+      'දෙසැම්බර්',
+    ];
+
+    final String dayName = days[now.weekday - 1];
+    final String monthName = months[now.month - 1];
+    return "$dayName, $monthName ${now.day}";
+  }
+
   // --- Baby Growth Logic ---
   Map<String, String> getBabyGrowthInfo(int week) {
     if (week <= 4) {
@@ -293,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           const SizedBox(width: 14),
 
-          // Name & Greeting
+          // Name, Greeting & Today's Date
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,13 +342,42 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 Text(
                   fullName,
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 17,
                     fontWeight: FontWeight.w900,
                     color: Color(0xFF1565C0),
                     letterSpacing: 0.2,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                // 📅 Today's Day & Date Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFCE4EC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFF8BBD0), width: 0.8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.calendar_today_rounded, size: 11, color: Color(0xFFE91E63)),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          "අද: ${_getFormattedSinhalaDate()}",
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFC2185B),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -843,23 +904,67 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final difference = nextClinicDate.difference(now).inDays;
     bool isUrgent = difference <= 2 && difference >= 0;
 
+    final List<String> days = [
+      'සඳුදා',
+      'අඟහරුවාදා',
+      'බදාදා',
+      'බ්‍රහස්පතින්දා',
+      'සිකුරාදා',
+      'සෙනසුරාදා',
+      'ඉරිදා',
+    ];
+    final List<String> months = [
+      'ජනවාරි',
+      'පෙබරවාරි',
+      'මාර්තු',
+      'අප්‍රේල්',
+      'මැයි',
+      'ජූනි',
+      'ජූලි',
+      'අගෝස්තු',
+      'සැප්තැම්බර්',
+      'ඔක්තෝබර්',
+      'නොවැම්බර්',
+      'දෙසැම්බර්',
+    ];
+
+    final String dayName = days[nextClinicDate.weekday - 1];
+    final String monthName = months[nextClinicDate.month - 1];
+    final String formattedDate = "${nextClinicDate.year} $monthName ${nextClinicDate.day} ($dayName)";
+
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isUrgent ? const Color(0xFFFFEBEE) : const Color(0xFFE3F2FD),
+        color: isUrgent ? const Color(0xFFFFF0F2) : const Color(0xFFF0F7FF),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isUrgent ? Colors.red.shade300 : Colors.blue.shade300,
-          width: 1.5,
+          color: isUrgent ? const Color(0xFFE53935) : const Color(0xFF1976D2),
+          width: 1.8,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: (isUrgent ? const Color(0xFFE53935) : const Color(0xFF1976D2))
+                .withValues(alpha: 0.10),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(
-            isUrgent ? Icons.notification_important_rounded : Icons.calendar_today_rounded,
-            color: isUrgent ? Colors.red : Colors.blue.shade700,
-            size: 32,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isUrgent ? const Color(0xFFFFCDD2) : const Color(0xFFBBDEFB),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isUrgent ? Icons.notification_important_rounded : Icons.calendar_month_rounded,
+              color: isUrgent ? const Color(0xFFC62828) : const Color(0xFF0D47A1),
+              size: 28,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -867,17 +972,42 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isUrgent ? "අවධානය: මීළඟ සායනය ළඟදීම!" : "මීළඟ සායන දිනය (Next Clinic)",
+                  isUrgent ? "🚨 මීළඟ සායනය ළඟදීම!" : "🏥 මීළඟ සායන දිනය (Next Clinic)",
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                     fontSize: 13,
-                    color: isUrgent ? Colors.red.shade900 : Colors.blue.shade900,
+                    color: isUrgent ? const Color(0xFFB71C1C) : const Color(0xFF0D47A1),
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 5),
                 Text(
-                  "${nextClinicDate.year}-${nextClinicDate.month.toString().padLeft(2, '0')}-${nextClinicDate.day.toString().padLeft(2, '0')} ($difference days left)",
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  formattedDate,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF212121), // High contrast deep dark color
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: isUrgent ? const Color(0xFFD32F2F) : const Color(0xFF1565C0),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    difference == 0
+                        ? "අද දිනයේදී පැවැත්වේ (Today!)"
+                        : difference == 1
+                            ? "හෙට දිනයේදී (Tomorrow!)"
+                            : "තව දින $difference කින් ($difference days left)",
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ],
             ),
