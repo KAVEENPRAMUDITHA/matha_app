@@ -188,6 +188,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         String riskStatus = d['riskStatus'] ?? "Normal";
         String? emergencyPhone = d['emergencyContact'];
         String profilePic = d['profilePic'] ?? 'assets/avatars/avatar1.png';
+        int gravida = d['gravida'] ?? 1;
 
         DateTime lmpDate = (d['lmp'] != null)
             ? (d['lmp'] as Timestamp).toDate()
@@ -233,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               if (nextClinic != null) _buildClinicReminderCard(nextClinic),
 
               // 4. Interactive Pregnancy Progress & Trimester Visualizer
-              _buildInteractiveProgressCard(weeks, days, daysToEdd),
+              _buildInteractiveProgressCard(weeks, days, daysToEdd, gravida),
               const SizedBox(height: 20),
 
               // 5. Daily Mother's Wellness Hub (Mood & Water Tracker with persistent Firestore Sync)
@@ -416,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   // ─────────────────────────────────────────────────────────────────
   //  3. INTERACTIVE PREGNANCY JOURNEY & TRIMESTER CARD
   // ─────────────────────────────────────────────────────────────────
-  Widget _buildInteractiveProgressCard(int weeks, int days, int daysToEdd) {
+  Widget _buildInteractiveProgressCard(int weeks, int days, int daysToEdd, [int gravida = 1]) {
     final int trimester = _getTrimester(weeks);
     final double progressPct = (weeks / 40.0).clamp(0.0, 1.0);
 
@@ -440,32 +441,56 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Row: Trimester Badge & Heartbeat
+          // Top Row: Trimester Badge, Gravida Badge & Heartbeat
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.20),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white38),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.spa_rounded, color: Color(0xFFFFD54F), size: 14),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.20),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white38),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.spa_rounded, color: Color(0xFFFFD54F), size: 14),
+                        const SizedBox(width: 5),
+                        Text(
+                          "ත්‍රෛමාසිකය $trimester",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (gravida > 1) ...[
                     const SizedBox(width: 6),
-                    Text(
-                      "ත්‍රෛමාසිකය $trimester (Trimester $trimester)",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF80AB).withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFFF80AB), width: 1),
+                      ),
+                      child: Text(
+                        "🤰 $gravida වන දරු ගැබ (G$gravida)",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                        ),
                       ),
                     ),
                   ],
-                ),
+                ],
               ),
               AnimatedBuilder(
                 animation: _heartPulseController,

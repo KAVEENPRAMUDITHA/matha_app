@@ -19,7 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     TextEditingController controller = TextEditingController(text: currentValue);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         backgroundColor: Colors.white.withValues(alpha: 0.98),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         title: Text(
@@ -47,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogCtx),
             child: const Text("අවලංගුයි", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
           ),
           ElevatedButton(
@@ -60,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   .collection('mothers')
                   .doc(docId)
                   .update({fieldName: controller.text});
-              if (mounted) Navigator.pop(context);
+              if (dialogCtx.mounted) Navigator.pop(dialogCtx);
             },
             child: const Text("සුරකින්න", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
@@ -293,9 +293,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-                  // Assigned Midwife Card
+                  // 1. Obstetric Passport (Gravida, Parity, Blood Group, Height)
+                  _buildObstetricPassportCard(userData),
+
+                  // 2. Pregnancy & Delivery History (Past Deliveries & Active Cycles)
+                  _buildPregnancyHistorySection(doc.id, userData),
+
+                  // 3. Assigned Midwife Card
                   if (userData['assignedMidwife'] != null)
                     Container(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -340,7 +346,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
 
-                  // Info Tiles
+                  // 4. Info Tiles
                   _buildInfoTile("හැඳුනුම්පත් අංකය / NIC", userData['nic'] ?? "N/A", Icons.badge_outlined, false, null),
                   _buildInfoTile("ඊමේල් ලිපිනය / EMAIL", userData['email'] ?? "N/A", Icons.mail_outline_rounded, true, () => _showEditDialog('email', userData['email'] ?? "", doc.id, "ඊමේල් ලිපිනය")),
                   _buildInfoTile("දුරකථන අංකය / PHONE", userData['phone'] ?? "N/A", Icons.phone_android_rounded, true, () => _showEditDialog('phone', userData['phone'] ?? "", doc.id, "දුරකථන අංකය")),
@@ -350,6 +356,384 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  //  OBSTETRIC PASSPORT (Gravida & Parity)
+  // ─────────────────────────────────────────────────────────────────
+  Widget _buildObstetricPassportCard(Map<String, dynamic> userData) {
+    final int gravida = userData['gravida'] ?? 1;
+    final int parity = userData['parity'] ?? (gravida > 1 ? gravida - 1 : 0);
+    final String bloodGroup = userData['bloodGroup'] ?? "N/A";
+    final dynamic height = userData['height'] ?? "N/A";
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0xFFF48FB1), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFE91E63).withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFCE4EC),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.badge_rounded, color: Color(0xFFE91E63), size: 20),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  "මාතෘ සෞඛ්‍ය විස්තර • Obstetric Passport",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    color: Color(0xFF1565C0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              // Gravida Box
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFE0F7FA), Color(0xFFE8F5E9)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFF80CBC4), width: 1),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "ගර්භණීභාවය (Gravida)",
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "G$gravida ($gravida වන දරු ගැබ)",
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF00695C),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Parity Box
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFF3E0), Color(0xFFFBE9E7)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFFFCC80), width: 1),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "පෙර ප්‍රසූති (Parity)",
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "P$parity ($parity දරු උපත්)",
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFFE65100),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              // Blood Group
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.bloodtype_rounded, color: Colors.redAccent, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        "රුධිරය: $bloodGroup",
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Height
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.height_rounded, color: Colors.blueAccent, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        "උස: $height cm",
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  //  PREGNANCY & DELIVERY HISTORY
+  // ─────────────────────────────────────────────────────────────────
+  Widget _buildPregnancyHistorySection(String motherDocId, Map<String, dynamic> userData) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0xFFCE93D8), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8E24AA).withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF3E5F5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Text("🌸", style: TextStyle(fontSize: 18)),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  "ප්‍රසූති ඉතිහාසය සහ වාර්තා\nPregnancy & Delivery History",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    color: Color(0xFF6A1B9A),
+                    height: 1.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Stream of past pregnancies from subcollection
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('mothers')
+                .doc(motherDocId)
+                .collection('pregnancies')
+                .orderBy('gravidaNumber', descending: true)
+                .snapshots(),
+            builder: (context, snap) {
+              if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(12),
+                    child: CircularProgressIndicator(color: Color(0xFFAB47BC), strokeWidth: 2),
+                  ),
+                );
+              }
+
+              final docs = snap.data?.docs ?? [];
+
+              if (docs.isEmpty) {
+                final int currentGravida = userData['gravida'] ?? 1;
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFAF5FB),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.favorite_rounded, color: Color(0xFFAB47BC), size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            currentGravida == 1
+                                ? "පළමු දරු ගැබ (1st Pregnancy • G1P0)"
+                                : "$currentGravida වන දරු ගැබ (Active • G$currentGravida)",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                              color: Color(0xFF6A1B9A),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        currentGravida == 1
+                            ? "මෙය ඔබගේ පළමු දරු ගැබයි. සාර්ථක හා නිරෝගී ප්‍රසූතියකට ආශිර්වාද කරමු!"
+                            : "දැනට මෙම දරු ගැබ ක්‍රියාකාරී තත්ත්වයේ (Active) පවතී.",
+                        style: const TextStyle(fontSize: 12, color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return Column(
+                children: docs.map((pDoc) {
+                  final data = pDoc.data() as Map<String, dynamic>;
+                  final int gNum = data['gravidaNumber'] ?? 1;
+                  final String status = data['status'] ?? 'Active';
+                  final bool isCompleted = status.toLowerCase() == 'completed' || status.toLowerCase() == 'delivered';
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isCompleted ? const Color(0xFFF9FBE7) : const Color(0xFFEDE7F6),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: isCompleted ? const Color(0xFFC0CA33) : const Color(0xFFB39DDB),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              isCompleted
+                                  ? "👶 $gNum වන දරු උපත (G$gNum • Completed)"
+                                  : "🤰 $gNum වන දරු ගැබ (G$gNum • Active)",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13.5,
+                                color: isCompleted ? const Color(0xFF558B2F) : const Color(0xFF512DA8),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: isCompleted ? const Color(0xFF7CB342) : const Color(0xFF673AB7),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                isCompleted ? "සාර්ථකව අවසන්" : "වත්මන් දරු ගැබ",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        if (isCompleted) ...[
+                          if (data['deliveryDate'] != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 3),
+                              child: Text(
+                                "📅 ප්‍රසූත දිනය: ${data['deliveryDate']}",
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87),
+                              ),
+                            ),
+                          if (data['birthWeight'] != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 3),
+                              child: Text(
+                                "⚖️ දරුවාගේ උපන් බර: ${data['birthWeight']} kg",
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87),
+                              ),
+                            ),
+                          if (data['deliveryMethod'] != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 3),
+                              child: Text(
+                                "🏥 ප්‍රසූත ක්‍රමය: ${data['deliveryMethod']}",
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87),
+                              ),
+                            ),
+                          if (data['hospital'] != null)
+                            Text(
+                              "📍 රෝහල: ${data['hospital']}",
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87),
+                            ),
+                        ] else ...[
+                          if (data['edd'] != null)
+                            Text(
+                              "🎯 අපේක්ෂිත ප්‍රසූත දිනය (EDD): ${data['edd']}",
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87),
+                            ),
+                        ],
+                      ],
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
