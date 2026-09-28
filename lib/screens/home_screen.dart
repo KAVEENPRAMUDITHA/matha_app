@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/sos_service.dart';
+import '../widgets/thriposha_status_card.dart';
 import 'baby_cry_analyzer_screen.dart';
 import 'community_chat_screen.dart';
 
@@ -231,7 +232,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               const SizedBox(height: 16),
 
               // 3. Urgent Clinic Reminder (if available)
-              if (nextClinic != null) _buildClinicReminderCard(nextClinic),
+              if (nextClinic != null) ...[
+                _buildClinicReminderCard(nextClinic),
+                const SizedBox(height: 12),
+              ],
+
+              // 3.1 🌾 Thriposha Distribution Status Card
+              ThriposhaStatusCard(motherId: doc.id),
+              const SizedBox(height: 12),
 
               // 4. Interactive Pregnancy Progress & Trimester Visualizer
               _buildInteractiveProgressCard(weeks, days, daysToEdd, gravida),
