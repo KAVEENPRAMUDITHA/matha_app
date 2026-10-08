@@ -19,7 +19,7 @@ class ReportService {
     try {
       String nic = user.email!.split('@').first.trim();
 
-      // 1. Cloudinary වෙත Upload කිරීම
+      // 1. Upload to Cloudinary
       CloudinaryResponse response = await cloudinary.uploadFile(
         CloudinaryFile.fromFile(
           imageFile.path,
@@ -30,7 +30,7 @@ class ReportService {
 
       String downloadUrl = response.secureUrl;
 
-      // 2. මවගේ දත්ත ලබා ගැනීම (MOH Area සහ Midwife Name දැන ගැනීමට)
+      // Mother data retrieval for context
       QuerySnapshot motherQuery = await _db
           .collection('mothers')
           .where('nic', isEqualTo: nic)
@@ -44,7 +44,7 @@ class ReportService {
       String mohArea = motherData['mohArea'] ?? "N/A";
       String assignedMidwifeName = motherData['assignedMidwife'] ?? "N/A";
 
-      // 3. Midwife ගේ වැඩිදුර විස්තර ලබා ගැනීම (Midwife Collection එකෙන්)
+      // Midwife data retrieval for contact info
       String midwifePhone = "N/A";
       String midwifeEmail = "N/A";
 
@@ -60,7 +60,7 @@ class ReportService {
         midwifeEmail = midwifeData['email'] ?? "N/A";
       }
 
-      // 4. අලුත් 'medical_reports' collection එකට දත්ත ඇතුළත් කිරීම
+      // 4. Add the new medical report to the 'medical_reports' collection
       await _db.collection('medical_reports').add({
         // Report Info
         'title': reportName,

@@ -599,37 +599,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               if (docs.isEmpty) {
                 final int currentGravida = userData['gravida'] ?? 1;
+                final String status = (userData['pregnancyStatus'] ?? userData['status'] ?? 'Active').toString();
+                final String hospStatus = (userData['hospitalStatus'] ?? 'None').toString();
+                final bool isCompleted = status.toLowerCase() == 'completed' || status.toLowerCase() == 'delivered';
+                final bool isHospitalized = hospStatus.toLowerCase() == 'admitted';
+
                 return Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFAF5FB),
+                    color: isCompleted ? const Color(0xFFF9FBE7) : (isHospitalized ? const Color(0xFFFFEBEE) : const Color(0xFFFAF5FB)),
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isCompleted ? const Color(0xFFC0CA33) : (isHospitalized ? Colors.redAccent : Colors.transparent),
+                      width: 1.2,
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.favorite_rounded, color: Color(0xFFAB47BC), size: 18),
-                          const SizedBox(width: 8),
-                          Text(
-                            currentGravida == 1
-                                ? "පළමු දරු ගැබ (1st Pregnancy • G1P0)"
-                                : "$currentGravida වන දරු ගැබ (Active • G$currentGravida)",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 13,
-                              color: Color(0xFF6A1B9A),
-                            ),
+                          Row(
+                            children: [
+                              Icon(Icons.favorite_rounded, color: isCompleted ? const Color(0xFF7CB342) : (isHospitalized ? Colors.redAccent : const Color(0xFFAB47BC)), size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  isCompleted 
+                                      ? "සාර්ථකව අවසන් (Completed)" 
+                                      : (currentGravida == 1
+                                          ? "පළමු දරු ගැබ (1st Pregnancy • G1P0)"
+                                          : "$currentGravida වන දරු ගැබ (Active • G$currentGravida)"),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 13,
+                                    color: isCompleted ? const Color(0xFF558B2F) : (isHospitalized ? Colors.red.shade900 : const Color(0xFF6A1B9A)),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
+                          if (isCompleted || isHospitalized) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: isCompleted ? const Color(0xFF7CB342) : Colors.redAccent,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                isCompleted ? "සාර්ථකව අවසන්" : "රෝහල්ගත වී ඇත",
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ]
                         ],
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        currentGravida == 1
-                            ? "මෙය ඔබගේ පළමු දරු ගැබයි. සාර්ථක හා නිරෝගී ප්‍රසූතියකට ආශිර්වාද කරමු!"
-                            : "දැනට මෙම දරු ගැබ ක්‍රියාකාරී තත්ත්වයේ (Active) පවතී.",
+                        isCompleted
+                            ? "මෙම දරු ගැබ සාර්ථකව අවසන් වී ඇත."
+                            : (isHospitalized 
+                                ? "මව රෝහල්ගත වී ඇත. (Hospitalized)" 
+                                : (currentGravida == 1
+                                    ? "මෙය ඔබගේ පළමු දරු ගැබයි. සාර්ථක හා නිරෝගී ප්‍රසූතියකට ආශිර්වාද කරමු!"
+                                    : "දැනට මෙම දරු ගැබ ක්‍රියාකාරී තත්ත්වයේ (Active) පවතී.")),
                         style: const TextStyle(fontSize: 12, color: Colors.black54),
                       ),
                     ],
@@ -641,25 +677,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: docs.map((pDoc) {
                   final data = pDoc.data() as Map<String, dynamic>;
                   final int gNum = data['gravidaNumber'] ?? 1;
-                  final String status = data['status'] ?? 'Active';
+                  final String status = (data['pregnancyStatus'] ?? data['status'] ?? 'Active').toString();
+                  final String hospStatus = (data['hospitalStatus'] ?? 'None').toString();
                   final bool isCompleted = status.toLowerCase() == 'completed' || status.toLowerCase() == 'delivered';
+                  final bool isHospitalized = hospStatus.toLowerCase() == 'admitted';
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: isCompleted ? const Color(0xFFF9FBE7) : const Color(0xFFEDE7F6),
+                      color: isCompleted ? const Color(0xFFF9FBE7) : (isHospitalized ? const Color(0xFFFFEBEE) : const Color(0xFFEDE7F6)),
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                        color: isCompleted ? const Color(0xFFC0CA33) : const Color(0xFFB39DDB),
+                        color: isCompleted ? const Color(0xFFC0CA33) : (isHospitalized ? Colors.redAccent : const Color(0xFFB39DDB)),
                         width: 1.2,
                       ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               isCompleted
@@ -668,17 +706,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               style: TextStyle(
                                 fontWeight: FontWeight.w900,
                                 fontSize: 13.5,
-                                color: isCompleted ? const Color(0xFF558B2F) : const Color(0xFF512DA8),
+                                color: isCompleted ? const Color(0xFF558B2F) : (isHospitalized ? Colors.red.shade900 : const Color(0xFF512DA8)),
                               ),
                             ),
+                            const SizedBox(height: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: isCompleted ? const Color(0xFF7CB342) : const Color(0xFF673AB7),
+                                color: isCompleted ? const Color(0xFF7CB342) : (isHospitalized ? Colors.redAccent : const Color(0xFF673AB7)),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
-                                isCompleted ? "සාර්ථකව අවසන්" : "වත්මන් දරු ගැබ",
+                                isCompleted ? "සාර්ථකව අවසන්" : (isHospitalized ? "රෝහල්ගත වී ඇත" : "වත්මන් දරු ගැබ"),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 10,

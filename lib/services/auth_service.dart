@@ -8,18 +8,19 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // ඇප් එකේ ඇති රහස් අකුරු පෙළ (Registration වලදී භාවිතා කළ එකම විය යුතුය)
+  // Static cryptographic pepper injected into the hashing entropy pool
   static const String _pepper = "Maatha#Secret#2026";
 
-  // මුරපදය Hash කිරීමේ function එක
+  /// Computes SHA-256 digest: Hash(Password + Dynamic Salt + Static Pepper)
   String _hashPassword(String password, String salt) {
     final bytes = utf8.encode(password + salt + _pepper);
     return sha256.convert(bytes).toString();
   }
 
+  /// Authenticates mother via NIC and password without transmitting plain text
   Future<User?> signIn(String nic, String password) async {
     try {
-      // 1. Firestore එකෙන් මවගේ Salt එක සොයා ගැනීම (NIC එක මඟින්)
+      // 1. Fetch the user's specific cryptographic salt from Firestore
       var snapshot = await _db
           .collection('mothers')
           .where('nic', isEqualTo: nic.trim())
@@ -31,16 +32,16 @@ class AuthService {
         return null;
       }
 
-      // 2. දත්ත පද්ධතියෙන් Salt එක ලබා ගැනීම
+      // Retrieve the salt for the specific user
       String salt = snapshot.docs.first.get('salt');
 
-      // 3. එම Salt සහ Pepper යොදාගෙන ලබාදුන් මුරපදය Hash කිරීම
+      // 2. Hash the input password with the retrieved salt and static pepper
       String hashedInputPassword = _hashPassword(password.trim(), salt);
 
       // 4. Email Masking
       String maskedEmail = "${nic.trim().toLowerCase()}@maatha.lk";
 
-      // 5. Firebase Auth හරහා Hash එක මුරපදය ලෙස යොදා ලොග් වීම
+      // 5. Authenticate with Firebase using the masked email and hashed password
       UserCredential result = await _auth.signInWithEmailAndPassword(
         email: maskedEmail,
         password: hashedInputPassword,

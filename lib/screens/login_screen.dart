@@ -238,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     return TextField(
       controller: controller,
       obscureText: isPassword ? _isObscure : false,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(
