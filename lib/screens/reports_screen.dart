@@ -84,6 +84,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
+                  dropdownColor: Colors.white,
                   value: uploadCategory,
                   isExpanded: true,
                   icon: const Icon(Icons.arrow_drop_down_circle, color: Color(0xFFF06292)),
