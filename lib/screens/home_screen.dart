@@ -6,6 +6,7 @@ import '../services/sos_service.dart';
 import '../widgets/thriposha_status_card.dart';
 import 'baby_cry_analyzer_screen.dart';
 import 'community_chat_screen.dart';
+import 'postpartum_records_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -191,6 +192,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         String profilePic = d['profilePic'] ?? 'assets/avatars/avatar1.png';
         int gravida = d['gravida'] ?? 1;
 
+        String statusStr = (d['pregnancyStatus'] ?? d['status'] ?? 'Antenatal').toString();
+        bool isCompleted = statusStr == 'Completed' || statusStr == 'Delivered' || statusStr == 'Postnatal' || statusStr == 'Completed/Delivered';
+
         DateTime lmpDate = (d['lmp'] != null)
             ? (d['lmp'] as Timestamp).toDate()
             : DateTime.now().subtract(const Duration(days: 70));
@@ -242,8 +246,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               const SizedBox(height: 12),
 
               // 4. Interactive Pregnancy Progress & Trimester Visualizer
-              _buildInteractiveProgressCard(weeks, days, daysToEdd, gravida),
-              const SizedBox(height: 20),
+              if (!isCompleted) ...[
+                _buildInteractiveProgressCard(weeks, days, daysToEdd, gravida),
+                const SizedBox(height: 20),
+              ],
+
 
               // 5. Daily Mother's Wellness Hub (Mood & Water Tracker with persistent Firestore Sync)
               _MotherWellnessHub(motherId: doc.id),
@@ -254,8 +261,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               const SizedBox(height: 20),
 
               // 7. Baby Growth Comparison Card
-              _buildBabyGrowthCard(weeks, getBabyGrowthInfo(weeks)),
-              const SizedBox(height: 20),
+              if (!isCompleted) ...[
+                _buildBabyGrowthCard(weeks, getBabyGrowthInfo(weeks)),
+                const SizedBox(height: 20),
+              ],
 
               // 8. AI Dual Assistant Banner (Baby Cry Analyzer & Sarah Chatbot)
               _buildAIAssistantsBanner(context),
@@ -267,6 +276,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
               // 9. Risk Status Indicator
               _buildRiskStatus(riskStatus),
+              const SizedBox(height: 20),
+              
+              // 10. Postpartum & Past Records Banner (Moved to bottom)
+              _buildPostpartumBanner(context, doc.id, isCompleted),
               const SizedBox(height: 120), // Bottom padding for nav & FAB
             ],
           ),
@@ -1102,6 +1115,86 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   // ─────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────
+  //  8.5 POSTPARTUM BANNER
+  // ─────────────────────────────────────────────────────────────────
+  Widget _buildPostpartumBanner(BuildContext context, String motherId, bool isCompleted) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: isCompleted 
+            ? const LinearGradient(colors: [Color(0xFFE65100), Color(0xFFFF9800)])
+            : const LinearGradient(colors: [Color(0xFF8E24AA), Color(0xFFCE93D8)]),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: (isCompleted ? Colors.orange : Colors.purple).withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PostpartumRecordsScreen(motherId: motherId)),
+            );
+          },
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isCompleted ? Icons.child_friendly_rounded : Icons.history_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isCompleted ? "ප්‍රසූත සහ පසුප්‍රසව වාර්තා" : "පසුගිය ප්‍රසූති වාර්තා (Past Records)",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isCompleted 
+                            ? "ඔබගේ ප්‍රසූත සාරාංශය සහ PHM නිවාස පරීක්ෂණ වාර්තා බලන්න." 
+                            : "ඔබගේ පෙර ප්‍රසූති වල දත්ත සහ වාර්තා මෙතැනින් බලන්න.",
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 18),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   //  9. RISK STATUS INDICATOR
   // ─────────────────────────────────────────────────────────────────
   Widget _buildRiskStatus(String status) {

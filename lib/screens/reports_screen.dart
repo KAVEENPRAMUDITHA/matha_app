@@ -57,7 +57,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ),
         content: TextField(
           controller: nameController,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
           decoration: InputDecoration(
             hintText: "උදා: 20th Week Anomaly Scan",
             filled: true,
@@ -128,14 +128,27 @@ class _ReportsScreenState extends State<ReportsScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text(
-            "වෛද්‍ය වාර්තා / MEDICAL LOCKER",
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 18,
-              color: Color(0xFF1565C0),
-              letterSpacing: 0.5,
-            ),
+          title: const Column(
+            children: [
+              Text(
+                "වෛද්‍ය වාර්තා",
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 20,
+                  color: Color(0xFF1565C0),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                "MEDICAL LOCKER",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                  color: Color(0xFFF06292),
+                  letterSpacing: 2.5,
+                ),
+              ),
+            ],
           ),
           backgroundColor: Colors.transparent,
           elevation: 0,

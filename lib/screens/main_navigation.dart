@@ -23,7 +23,6 @@ class _MainNavigationState extends State<MainNavigation> {
     ReportsScreen(),
     const ClinicScreen(),
     const ProfileScreen(),
-    const CommunityChatScreen(isTab: true),
   ];
 
   @override
@@ -42,11 +41,9 @@ class _MainNavigationState extends State<MainNavigation> {
               child: _screens[_selectedIndex],
             ),
           ),
-          // Floating 3D AI Assistant Stack — hidden on Community Chat (tab 4) to avoid covering the send button and input area
-          if (_selectedIndex != 4) ...[
-            const FloatingChatbot(bottom: 95, right: 20),
-            const FloatingCryDetector(bottom: 175, right: 20),
-          ],
+          // Floating 3D AI Assistant Stack
+          const FloatingChatbot(bottom: 95, right: 20),
+          const FloatingCryDetector(bottom: 175, right: 20),
         ],
       ),
       bottomNavigationBar: _buildPremiumNavBar(bottomPadding),
@@ -82,8 +79,8 @@ class _MainNavigationState extends State<MainNavigation> {
               _buildNavItem(Icons.home_rounded, "මුල් පිටුව", 0),
               _buildNavItem(Icons.auto_graph_rounded, "වාර්තා", 1),
               _buildNavItem(Icons.calendar_month_rounded, "සායනය", 2),
+              _buildNavItem(Icons.groups_2_rounded, "ප්‍රජාව", -1), // Special action
               _buildNavItem(Icons.face_retouching_natural_rounded, "ගිණුම", 3),
-              _buildNavItem(Icons.groups_2_rounded, "ප්‍රජාව", 4),
             ],
           ),
         ),
@@ -97,7 +94,29 @@ class _MainNavigationState extends State<MainNavigation> {
 
     return Expanded(
       child: InkWell(
-        onTap: () => setState(() => _selectedIndex = index),
+        onTap: () {
+          if (label == "ප්‍රජාව") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => Scaffold(
+                  appBar: AppBar(
+                    title: const Text(
+                      "මාතෘ ප්‍රජා කවය (Community)",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF1565C0),
+                    elevation: 0,
+                  ),
+                  body: const CommunityChatScreen(isTab: false),
+                ),
+              ),
+            );
+          } else {
+            setState(() => _selectedIndex = index);
+          }
+        },
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
         child: Column(

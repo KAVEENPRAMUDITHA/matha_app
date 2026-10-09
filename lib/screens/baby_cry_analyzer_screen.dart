@@ -20,7 +20,7 @@ class BabyCryAnalyzerScreen extends StatefulWidget {
 
 class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
     with SingleTickerProviderStateMixin {
-  final String _hfBaseUrl = "https://yemani-maatha-cry-api.hf.space";
+  final String _hfBaseUrl = "https://yemani-maatha-baby-cry.hf.space";
 
   late final AudioRecorder _audioRecorder;
   late AnimationController _pulseController;
@@ -177,8 +177,8 @@ class _BabyCryAnalyzerScreenState extends State<BabyCryAnalyzerScreen>
           if (line.startsWith('data: ')) {
             final dataStr = line.substring(6).trim();
             final dynamic decoded = json.decode(dataStr);
-            if (decoded is List && decoded.length >= 3) {
-              parsedJson = decoded[2] as Map<String, dynamic>;
+            if (decoded is List && decoded.isNotEmpty) {
+              parsedJson = decoded[0] as Map<String, dynamic>;
               break;
             }
           }
