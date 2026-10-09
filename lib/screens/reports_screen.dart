@@ -34,14 +34,17 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
     TextEditingController nameController = TextEditingController();
 
+    String uploadCategory = _categories[1];
+
     if (!mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white.withValues(alpha: 0.98),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        title: const Column(
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Colors.white.withValues(alpha: 0.98),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          title: const Column(
           children: [
             Icon(Icons.drive_folder_upload_rounded, color: Color(0xFFF06292), size: 44),
             SizedBox(height: 10),
@@ -55,19 +58,51 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
           ],
         ),
-        content: TextField(
-          controller: nameController,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-          decoration: InputDecoration(
-            hintText: "උදා: 20th Week Anomaly Scan",
-            filled: true,
-            fillColor: Colors.grey.shade100,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide.none,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+              decoration: InputDecoration(
+                hintText: "උදා: 20th Week Anomaly Scan",
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+                prefixIcon: const Icon(Icons.description_rounded, color: Color(0xFFF06292)),
+              ),
             ),
-            prefixIcon: const Icon(Icons.description_rounded, color: Color(0xFFF06292)),
-          ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: uploadCategory,
+                  isExpanded: true,
+                  icon: const Icon(Icons.arrow_drop_down_circle, color: Color(0xFFF06292)),
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 14),
+                  items: _categories.skip(1).map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    if (newValue != null) {
+                      setDialogState(() => uploadCategory = newValue);
+                    }
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -83,20 +118,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
             onPressed: () {
               if (nameController.text.isNotEmpty) {
                 Navigator.pop(context);
-                _startUpload(File(image.path), nameController.text);
+                _startUpload(File(image.path), nameController.text, uploadCategory);
               }
             },
             child: const Text("Upload කරන්න", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
+      ),
     );
   }
 
-  Future<void> _startUpload(File file, String name) async {
+  Future<void> _startUpload(File file, String name, String category) async {
     setState(() => _isUploading = true);
     try {
-      await _reportService.uploadReport(file, name);
+      await _reportService.uploadReport(file, name, category);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -197,13 +233,30 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       }
 
                       final allDocs = snapshot.data!.docs;
+                      
+                      var filteredDocs = allDocs;
+                      if (_selectedCategory != "සියල්ල") {
+                        filteredDocs = allDocs.where((doc) {
+                          var data = doc.data() as Map<String, dynamic>;
+                          return data.containsKey('category') && data['category'] == _selectedCategory;
+                        }).toList();
+                      }
+
+                      if (filteredDocs.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            "මෙම කාණ්ඩයේ වාර්තා නොමැත.",
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
+                          ),
+                        );
+                      }
 
                       return ListView.builder(
                         physics: const BouncingScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(18, 10, 18, 120),
-                        itemCount: allDocs.length,
+                        itemCount: filteredDocs.length,
                         itemBuilder: (context, index) {
-                          var report = allDocs[index];
+                          var report = filteredDocs[index];
                           DateTime date = (report['uploadedAt'] as Timestamp?)?.toDate() ?? DateTime.now();
                           String formattedDate = DateFormat('yyyy MMM dd • hh:mm a').format(date);
 

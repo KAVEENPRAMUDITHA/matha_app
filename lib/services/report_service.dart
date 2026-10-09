@@ -12,7 +12,7 @@ class ReportService {
     cache: false,
   );
 
-  Future<void> uploadReport(File imageFile, String reportName) async {
+  Future<void> uploadReport(File imageFile, String reportName, String category) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
@@ -64,6 +64,7 @@ class ReportService {
       await _db.collection('medical_reports').add({
         // Report Info
         'title': reportName,
+        'category': category,
         'imageUrl': downloadUrl,
         'uploadedAt': FieldValue.serverTimestamp(),
         
